@@ -7,31 +7,28 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    InMemoryUserDetailsManager userDetailsManager() {
-        UserDetails user1 = User.builder()
-                .username("Vasya")
-                .password("{noop}password")
-                .roles("EMPLOYEE")
-                .build();
-        UserDetails user2 = User.builder()
-                .username("Masha")
-                .password("{noop}password")
-                .roles("EMPLOYEE", "MANAGER")
-                .build();
-        UserDetails user3 = User.builder()
-                    .username("Nikitos")
-                .password("{noop}password")
-                .roles("EMPLOYEE", "MANAGER", "ADMIN")
-                .build();
+    JdbcUserDetailsManager userDetailsManager(DataSource dataSource) {
+        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager(dataSource);
+        userDetailsManager.setUsersByUsernameQuery("select user_id,pw,active from members where user_id = ?");
+        userDetailsManager.setAuthoritiesByUsernameQuery("select user_id,role from roles where user_id = ?");
+        return userDetailsManager;
+    }
 
-        return new InMemoryUserDetailsManager(user1, user2, user3);
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
