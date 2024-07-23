@@ -5,44 +5,45 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
-public class EmployeeServiceImpl implements EmployeeService{
-    private EmployeeDAO employeeDAO;
+public class EmployeeServiceImpl implements EmployeeService {
+    private EmployeeRepository employeeRepository;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeDAO employeeDAO) {
-        this.employeeDAO = employeeDAO;
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
     }
 
     @Override
     public Employee save(Employee employee) {
-        return employeeDAO.save(employee);
+        return employeeRepository.save(employee);
     }
 
     @Override
-    public Employee findById(long id) {
-        return employeeDAO.findById(id);
+    public Employee findById(int id) {
+        Optional<Employee> employee = employeeRepository.findById(id);
+        if (employee.isPresent()) {
+            return employee.get();
+        }
+        throw new RuntimeException("Employee " + id + " not found");
     }
 
     @Override
     public List<Employee> findAll() {
-        return employeeDAO.findAll();
+        return employeeRepository.findAll();
     }
 
-    @Override
-    public List<Employee> findByLastname(String lastname) {
-        return employeeDAO.findByLastname(lastname);
-    }
 
     @Override
     public void delete(int id) {
-        employeeDAO.delete(id);
+        employeeRepository.deleteById(id);
     }
 
     @Override
-    public int deleteAll() {
-        return employeeDAO.deleteAll();
+    public void deleteAll() {
+        employeeRepository.deleteAll();
     }
 }
